@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Data Viewer — AER 2.0</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet" />
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body, #root { height: 100%; overflow: hidden; }
+
+    body {
+      font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 14px;
+      color: #000;
+      background: #F2F2F2;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #D8D8D8; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #BBBBBB; }
+
+    table { border-collapse: collapse; }
+    th, td { font-family: 'DM Sans', sans-serif; }
+    input, button, select { font-family: 'DM Sans', sans-serif; font-size: 14px; }
+    mark { background: #ECEDFF; color: #4547FF; border-radius: 2px; padding: 0 1px; }
+
+    :root {
+      --dv-accent:      #4547FF;
+      --dv-accent-bg:   #ECEDFF;
+      --dv-accent-dark: #3638CC;
+    }
+
+    button:focus { outline: none; }
+    select:focus { outline: none; }
+    input:focus  { outline: none; }
+
+    /* ── Print styles ──────────────────────────────────────────────── */
+    @media print {
+      @page { size: landscape; margin: 0.8cm 1cm; }
+
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+
+      html, body, #root {
+        height: auto !important;
+        overflow: visible !important;
+      }
+
+      /* Show full page as static layout */
+      body { background: #fff !important; }
+
+      /* Hide sidebar */
+      #root > div > div > div:first-child { display: none !important; }
+
+      /* Hide header toggle button, bell, avatar */
+      header button, [title="Toggle sidebar"] { display: none !important; }
+
+      /* Hide tweaks panel, advanced filters panel, date picker popup */
+      [data-tweaks-panel], [data-dv-dp], [data-dv-qfm] { display: none !important; }
+
+      /* Remove overflow clipping from main layout */
+      #root > div,
+      #root > div > div,
+      #root > div > div > main {
+        height: auto !important;
+        overflow: visible !important;
+        flex: unset !important;
+      }
+
+      /* Content scroll area */
+      main > div:last-child {
+        overflow: visible !important;
+        height: auto !important;
+      }
+
+      /* Hide pagination controls, search bar, table action buttons */
+      [title="Add filter"],
+      [title="Advanced Filters"],
+      [data-filter-bar] button,
+      [data-filter-bar] { display: none !important; }
+
+      /* Metrics row — no min-width constraint */
+      .metrics-row, [style*="minWidth:1100"] { min-width: unset !important; }
+
+      /* Table: show all visible rows, no overflow */
+      table { width: 100% !important; }
+      thead { display: table-header-group; }
+      tr { break-inside: avoid; }
+
+      /* Metric cards: no hover shadows */
+      [style*="boxShadow"] { box-shadow: none !important; }
+
+      /* Hide timeline load button */
+      button[style*="borderRadius:99"] { display: none !important; }
+
+      /* Page break before table */
+      [style*="DVEventsTable"], [style*="minWidth:1100"]:last-child {
+        break-before: page;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script src="dv-data.js"></script>
+  <script type="text/babel" src="dv-ui.jsx"                    data-presets="react"></script>
+  <script type="text/babel" src="dv-datepicker.jsx"            data-presets="react"></script>
+  <script type="text/babel" src="dv-filters.jsx"               data-presets="react"></script>
+  <script type="text/babel" src="dv-content.jsx"               data-presets="react"></script>
+  <script type="text/babel" src="dv-table.jsx"                 data-presets="react"></script>
+  <script type="text/babel" src="tweaks-panel.jsx"             data-presets="react"></script>
+  <script type="text/babel" src="dv-advanced-filters.jsx"      data-presets="react"></script>
+  <script type="text/babel" src="dv-app.jsx"                   data-presets="react"></script>
+
+  <!-- Auto-print: wait for React render + fonts -->
+  <script type="text/babel" data-presets="react">
+    (function triggerPrint() {
+      Promise.all([
+        document.fonts.ready,
+        new Promise(resolve => {
+          const check = () => {
+            const root = document.getElementById('root');
+            if (root && root.children.length > 0 && root.querySelector('table')) {
+              resolve();
+            } else {
+              setTimeout(check, 300);
+            }
+          };
+          setTimeout(check, 1000);
+        })
+      ]).then(() => {
+        setTimeout(() => window.print(), 500);
+      });
+    })();
+  </script>
+</body>
+</html>
